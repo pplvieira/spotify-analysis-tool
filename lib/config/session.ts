@@ -4,10 +4,12 @@ import { config } from './config';
 // For Vercel deployment with KV store
 let sessionStore: session.Store | undefined;
 
-// Only use KV store in production on Vercel
-if (config.nodeEnv === 'production' && process.env.VERCEL) {
+// Only use KV store if environment variables are configured
+const hasKVConfig = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
+
+if (hasKVConfig && process.env.VERCEL) {
   try {
-    // Dynamic import for Vercel KV (only available in production)
+    // Dynamic import for Vercel KV
     const { kv } = require('@vercel/kv');
     const RedisStore = require('connect-redis').default;
 
@@ -19,9 +21,14 @@ if (config.nodeEnv === 'production' && process.env.VERCEL) {
 
     console.log('✓ Using Vercel KV for session storage');
   } catch (error) {
-    console.warn('⚠ Vercel KV not available, using memory store');
+    console.warn('⚠ Vercel KV initialization failed, using memory store');
+    console.warn('  Error:', error);
     console.warn('  Sessions will not persist across serverless invocations');
   }
+} else if (process.env.VERCEL) {
+  console.log('ℹ Vercel KV not configured, using memory store for sessions');
+  console.log('  Sessions will not persist across serverless invocations');
+  console.log('  This is fine for preview deployments');
 }
 
 export const sessionConfig: session.SessionOptions = {
@@ -40,8 +47,9 @@ export const sessionConfig: session.SessionOptions = {
   name: 'spotify.sid',
 };
 
-// Add warning if using memory store in production
-if (config.nodeEnv === 'production' && !sessionStore && process.env.VERCEL) {
+// Add warning if using memory store in production (not preview)
+const isProduction = config.nodeEnv === 'production' && process.env.VERCEL_ENV === 'production';
+if (isProduction && !sessionStore) {
   console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.warn('⚠️  WARNING: Using memory-based sessions in production');
   console.warn('   Sessions will NOT persist across serverless functions');
