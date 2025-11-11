@@ -32,14 +32,18 @@ A full-stack web application that allows users to log into their Spotify account
 ```
 spotify-analysis-tool/
 ├── backend/
+│   ├── api/
+│   │   └── index.ts         # Vercel serverless entry point
 │   ├── src/
+│   │   ├── app.ts           # Express app configuration
+│   │   ├── server.ts        # Local development server
 │   │   ├── config/          # Configuration files
 │   │   ├── controllers/     # Request handlers
 │   │   ├── middleware/      # Express middleware
 │   │   ├── routes/          # API routes
 │   │   ├── services/        # Business logic
-│   │   ├── types/           # TypeScript types
-│   │   └── server.ts        # Entry point
+│   │   └── types/           # TypeScript types
+│   ├── vercel.json          # Vercel configuration
 │   ├── package.json
 │   └── tsconfig.json
 ├── frontend/
@@ -51,6 +55,7 @@ spotify-analysis-tool/
 │   │   ├── types/           # TypeScript types
 │   │   ├── App.tsx          # Main app component
 │   │   └── main.tsx         # Entry point
+│   ├── vercel.json          # Vercel configuration
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── vite.config.ts
