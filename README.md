@@ -211,17 +211,32 @@ VITE_API_URL=http://localhost:3001/api
 
 ## Production Deployment
 
-### Backend
-1. Set `NODE_ENV=production`
-2. Set secure `SESSION_SECRET`
-3. Update `SPOTIFY_REDIRECT_URI` to your production URL
-4. Update `FRONTEND_URL` to your production frontend URL
-5. Set `cookie.secure` to true in session config
+For detailed deployment instructions, see:
+- **[Quick Vercel Setup Guide](VERCEL_SETUP.md)** - Step-by-step guide for Vercel + Railway deployment
+- **[Complete Deployment Guide](DEPLOYMENT.md)** - All deployment options and configurations
 
-### Frontend
-1. Update `VITE_API_URL` to your production API URL
-2. Build with `npm run build`
-3. Serve the `dist` folder with a static file server
+### Recommended Setup
+- **Frontend**: Vercel (automatic preview & production deployments)
+- **Backend**: Railway (supports persistent sessions)
+
+### Quick Deploy Summary
+
+1. **Deploy Backend to Railway**
+   - Connect GitHub repository
+   - Set root directory to `/backend`
+   - Add environment variables
+   - Auto-deploy on push
+
+2. **Deploy Frontend to Vercel**
+   - Import repository
+   - Set root directory to `/frontend`
+   - Add `VITE_API_URL` environment variable
+   - Auto-deploy on push with preview deployments
+
+3. **Update Spotify App**
+   - Add production redirect URI to Spotify Dashboard
+
+See [VERCEL_SETUP.md](VERCEL_SETUP.md) for complete step-by-step instructions.
 
 ## Security Notes
 
