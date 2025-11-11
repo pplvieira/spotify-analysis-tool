@@ -69,6 +69,11 @@ export function createApp(): Application {
   // Attach user session middleware
   app.use(attachUserSession);
 
+  // Serve static files from public directory
+  const publicPath = path.join(__dirname, '../public');
+  app.use(express.static(publicPath));
+  app.use('/assets', express.static(path.join(publicPath, 'assets')));
+
   // Health check endpoint
   app.get('/health', (req: Request, res: Response) => {
     res.json({
@@ -84,13 +89,17 @@ export function createApp(): Application {
   app.use('/spotify', spotifyRoutes);
   app.use('/analysis', analysisRoutes);
 
-  // 404 handler for API routes
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    res.status(404).json({
-      error: 'API endpoint not found',
-      path: req.path,
-      method: req.method,
-    });
+  // Serve React app for all other routes (SPA fallback)
+  app.get('*', (req: Request, res: Response) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith('/auth') || req.path.startsWith('/spotify') || req.path.startsWith('/analysis')) {
+      return res.status(404).json({
+        error: 'API endpoint not found',
+        path: req.path,
+      });
+    }
+
+    res.sendFile(path.join(publicPath, 'index.html'));
   });
 
   // Global error handler
