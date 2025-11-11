@@ -5,12 +5,12 @@ const autoprefixer = require('autoprefixer');
 const fs = require('fs');
 const path = require('path');
 
-// Ensure dist directories exist
-if (!fs.existsSync('./dist')) {
-  fs.mkdirSync('./dist', { recursive: true });
+// Ensure public directories exist (Vercel serves from public/)
+if (!fs.existsSync('./public')) {
+  fs.mkdirSync('./public', { recursive: true });
 }
-if (!fs.existsSync('./dist/assets')) {
-  fs.mkdirSync('./dist/assets', { recursive: true });
+if (!fs.existsSync('./public/assets')) {
+  fs.mkdirSync('./public/assets', { recursive: true });
 }
 
 // Process CSS with Tailwind
@@ -18,11 +18,11 @@ async function processCss() {
   const css = fs.readFileSync('./src/index.css', 'utf8');
   const result = await postcss([tailwindcss, autoprefixer]).process(css, {
     from: './src/index.css',
-    to: './dist/assets/main.css',
+    to: './public/assets/main.css',
   });
-  fs.writeFileSync('./dist/assets/main.css', result.css);
+  fs.writeFileSync('./public/assets/main.css', result.css);
   if (result.map) {
-    fs.writeFileSync('./dist/assets/main.css.map', result.map.toString());
+    fs.writeFileSync('./public/assets/main.css.map', result.map.toString());
   }
 }
 
@@ -32,7 +32,7 @@ const updatedHtml = html
   .replace(/src="\/src\/main\.tsx"/, 'src="/assets/main.js"')
   .replace(/<script type="module"/, '<script')
   .replace(/<\/head>/, '  <link rel="stylesheet" href="/assets/main.css">\n  </head>');
-fs.writeFileSync('./dist/index.html', updatedHtml);
+fs.writeFileSync('./public/index.html', updatedHtml);
 
 // Build frontend
 async function build() {
@@ -47,7 +47,7 @@ async function build() {
       bundle: true,
       minify: true,
       sourcemap: true,
-      outfile: './dist/assets/main.js',
+      outfile: './public/assets/main.js',
       loader: {
         '.tsx': 'tsx',
         '.ts': 'ts',

@@ -69,11 +69,6 @@ export function createApp(): Application {
   // Attach user session middleware
   app.use(attachUserSession);
 
-  // Serve static files from dist directory
-  const distPath = path.join(__dirname, '../dist');
-  app.use(express.static(distPath));
-  app.use('/assets', express.static(path.join(distPath, 'assets')));
-
   // Health check endpoint
   app.get('/health', (req: Request, res: Response) => {
     res.json({
@@ -84,22 +79,18 @@ export function createApp(): Application {
     });
   });
 
-  // API routes
-  app.use('/api/auth', authRoutes);
-  app.use('/api/spotify', spotifyRoutes);
-  app.use('/api/analysis', analysisRoutes);
+  // API routes (no /api prefix - Vercel adds it based on file location)
+  app.use('/auth', authRoutes);
+  app.use('/spotify', spotifyRoutes);
+  app.use('/analysis', analysisRoutes);
 
-  // Serve React app for all other routes (SPA fallback)
-  app.get('*', (req: Request, res: Response) => {
-    // Don't serve index.html for API routes that weren't matched
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({
-        error: 'API endpoint not found',
-        path: req.path,
-      });
-    }
-
-    res.sendFile(path.join(distPath, 'index.html'));
+  // 404 handler for API routes
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.status(404).json({
+      error: 'API endpoint not found',
+      path: req.path,
+      method: req.method,
+    });
   });
 
   // Global error handler
