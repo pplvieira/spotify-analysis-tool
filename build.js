@@ -28,13 +28,10 @@ async function processCss() {
 
 // Copy and update index.html
 const html = fs.readFileSync('./index.html', 'utf8');
-const updatedHtml = html.replace(
-  /src="\/src\/main\.tsx"/,
-  'src="/assets/main.js"'
-).replace(
-  /<\/head>/,
-  '  <link rel="stylesheet" href="/assets/main.css">\n  </head>'
-);
+const updatedHtml = html
+  .replace(/src="\/src\/main\.tsx"/, 'src="/assets/main.js"')
+  .replace(/<script type="module"/, '<script')
+  .replace(/<\/head>/, '  <link rel="stylesheet" href="/assets/main.css">\n  </head>');
 fs.writeFileSync('./dist/index.html', updatedHtml);
 
 // Build frontend
