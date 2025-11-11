@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+src/**/*.test.ts
+src/**/*.spec.ts
+dist
+.git
+README.md

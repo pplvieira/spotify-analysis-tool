@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-spotify-darkgray text-spotify-white font-sans antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-spotify-green text-spotify-black font-bold py-3 px-8 rounded-full hover:bg-green-400 transform hover:scale-105 transition-all duration-200 shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border-2 border-spotify-lightgray text-spotify-white font-semibold py-3 px-8 rounded-full hover:border-spotify-white hover:bg-white hover:bg-opacity-10 transform hover:scale-105 transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-spotify-gray rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200;
+  }
+
+  .stat-card {
+    @apply bg-spotify-gray rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-md;
+  }
+}
