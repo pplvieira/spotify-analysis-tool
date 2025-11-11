@@ -1,57 +1,15 @@
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import session from 'express-session';
-import cookieParser from 'cookie-parser';
+/**
+ * Local Development Server
+ *
+ * This file starts a local Express server for development.
+ * In production on Vercel, the api/index.ts file is used instead.
+ */
+
+import { createApp } from './app';
 import { config } from './config/config';
-import { sessionConfig } from './config/session';
-import { attachUserSession } from './middleware/auth.middleware';
 
-// Import routes
-import authRoutes from './routes/auth.routes';
-import spotifyRoutes from './routes/spotify.routes';
-import analysisRoutes from './routes/analysis.routes';
-
-const app: Application = express();
-
-// Middleware
-app.use(
-  cors({
-    origin: config.frontend.url,
-    credentials: true,
-  })
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// Session configuration with proper store
-app.use(session(sessionConfig));
-
-// Attach user session middleware
-app.use(attachUserSession);
-
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/spotify', spotifyRoutes);
-app.use('/api/analysis', analysisRoutes);
-
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: 'Not found' });
-});
-
-// Error handler
-app.use((err: any, req: Request, res: Response, next: any) => {
-  console.error('Server error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
-  });
-});
+// Create Express application
+const app = createApp();
 
 // Start server
 const PORT = config.port;

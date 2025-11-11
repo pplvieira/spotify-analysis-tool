@@ -1,23 +1,9 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
+      "source": "/(.*)",
+      "destination": "/api"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.ts"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "SPOTIFY_CLIENT_ID": "@spotify_client_id",
-    "SPOTIFY_CLIENT_SECRET": "@spotify_client_secret",
-    "SPOTIFY_REDIRECT_URI": "@spotify_redirect_uri",
-    "SESSION_SECRET": "@session_secret",
-    "FRONTEND_URL": "@frontend_url"
-  }
+  ]
 }
