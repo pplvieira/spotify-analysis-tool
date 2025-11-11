@@ -10,6 +10,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { config } from './config/config';
 import { sessionConfig } from './config/session';
 import { attachUserSession } from './middleware/auth.middleware';
@@ -68,6 +69,11 @@ export function createApp(): Application {
   // Attach user session middleware
   app.use(attachUserSession);
 
+  // Serve static files from dist directory
+  const distPath = path.join(__dirname, '../dist');
+  app.use(express.static(distPath));
+  app.use('/assets', express.static(path.join(distPath, 'assets')));
+
   // Health check endpoint
   app.get('/health', (req: Request, res: Response) => {
     res.json({
@@ -78,32 +84,22 @@ export function createApp(): Application {
     });
   });
 
-  // Root endpoint
-  app.get('/', (req: Request, res: Response) => {
-    res.json({
-      message: 'Spotify Analysis API',
-      version: '1.0.0',
-      endpoints: {
-        health: '/health',
-        auth: '/api/auth/*',
-        spotify: '/api/spotify/*',
-        analysis: '/api/analysis/*',
-      },
-    });
-  });
-
   // API routes
   app.use('/api/auth', authRoutes);
   app.use('/api/spotify', spotifyRoutes);
   app.use('/api/analysis', analysisRoutes);
 
-  // 404 handler
-  app.use((req: Request, res: Response) => {
-    res.status(404).json({
-      error: 'Not found',
-      path: req.path,
-      method: req.method,
-    });
+  // Serve React app for all other routes (SPA fallback)
+  app.get('*', (req: Request, res: Response) => {
+    // Don't serve index.html for API routes that weren't matched
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({
+        error: 'API endpoint not found',
+        path: req.path,
+      });
+    }
+
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 
   // Global error handler
