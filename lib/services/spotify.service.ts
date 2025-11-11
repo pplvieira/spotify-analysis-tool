@@ -26,12 +26,14 @@ export class SpotifyService {
   /**
    * Exchange authorization code for access tokens
    */
-  static async getTokens(code: string): Promise<SpotifyTokens> {
+  static async getTokens(code: string, redirectUri: string): Promise<SpotifyTokens> {
     const params = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: config.spotify.redirectUri,
+      redirect_uri: redirectUri,
     });
+
+    console.log('[SPOTIFY SERVICE] Exchanging code for tokens with redirect_uri:', redirectUri);
 
     const response = await axios.post<SpotifyTokens>(
       `${SPOTIFY_ACCOUNTS_BASE_URL}/api/token`,

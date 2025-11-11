@@ -15,10 +15,17 @@ export class AuthController {
       'user-library-read',
     ].join(' ');
 
+    // Build dynamic redirect URI based on current host
+    // This allows OAuth to work in production, preview, and local environments
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const redirectUri = `${baseUrl}/api/auth/callback`;
+
+    console.log('[AUTH LOGIN] Initiating OAuth with redirect_uri:', redirectUri);
+
     const authUrl = new URL(`${SPOTIFY_ACCOUNTS_BASE_URL}/authorize`);
     authUrl.searchParams.append('client_id', config.spotify.clientId);
     authUrl.searchParams.append('response_type', 'code');
-    authUrl.searchParams.append('redirect_uri', config.spotify.redirectUri);
+    authUrl.searchParams.append('redirect_uri', redirectUri);
     authUrl.searchParams.append('scope', scopes);
     authUrl.searchParams.append('show_dialog', 'true');
 
@@ -40,6 +47,7 @@ export class AuthController {
 
     // Get base URL from request for unified deployment
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const redirectUri = `${baseUrl}/api/auth/callback`;
 
     if (error) {
       return res.redirect(`${baseUrl}/?error=${error}`);
@@ -50,8 +58,8 @@ export class AuthController {
     }
 
     try {
-      // Exchange code for tokens
-      const tokens = await SpotifyService.getTokens(code);
+      // Exchange code for tokens (must use same redirect_uri as login)
+      const tokens = await SpotifyService.getTokens(code, redirectUri);
 
       // Save tokens in session
       req.session.accessToken = tokens.access_token;
@@ -62,6 +70,8 @@ export class AuthController {
       const spotifyService = new SpotifyService(tokens.access_token);
       const user = await spotifyService.getCurrentUser();
       req.session.user = user;
+
+      console.log('[AUTH CALLBACK] Successfully authenticated user:', user.id);
 
       // Redirect to dashboard (same domain in unified deployment)
       res.redirect(`${baseUrl}/dashboard`);
