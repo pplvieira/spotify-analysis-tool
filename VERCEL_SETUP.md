@@ -2,11 +2,25 @@
 
 Step-by-step guide to deploy your Spotify Analysis Tool to Vercel with preview and production environments.
 
+## Deployment Options
+
+**Option A: Frontend on Vercel + Backend on Railway (Recommended)**
+- ✅ Easy setup, no additional configuration needed
+- ✅ Built-in persistent sessions on Railway
+- ✅ Follow this guide
+
+**Option B: Full Vercel Deployment (Frontend + Backend)**
+- ✅ Everything on one platform
+- ⚠️ Requires Vercel KV setup for session persistence
+- 📖 See [VERCEL_KV_SETUP.md](VERCEL_KV_SETUP.md) after completing Step 2
+
+This guide covers **Option A** (recommended). For Option B, follow Steps 2-3, then see [VERCEL_KV_SETUP.md](VERCEL_KV_SETUP.md).
+
 ## Prerequisites
 
 - GitHub repository with your code
 - Vercel account (sign up at https://vercel.com)
-- Railway account (sign up at https://railway.app) - for backend
+- Railway account (sign up at https://railway.app) - for backend (Option A only)
 - Spotify Developer App
 
 ---

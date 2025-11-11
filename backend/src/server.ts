@@ -3,6 +3,7 @@ import cors from 'cors';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import { config } from './config/config';
+import { sessionConfig } from './config/session';
 import { attachUserSession } from './middleware/auth.middleware';
 
 // Import routes
@@ -23,20 +24,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Session configuration
-app.use(
-  session({
-    secret: config.session.secret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: config.nodeEnv === 'production',
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
-    },
-  })
-);
+// Session configuration with proper store
+app.use(session(sessionConfig));
 
 // Attach user session middleware
 app.use(attachUserSession);
