@@ -84,15 +84,15 @@ export function createApp(): Application {
     });
   });
 
-  // API routes (no /api prefix - Vercel adds it based on file location)
-  app.use('/auth', authRoutes);
-  app.use('/spotify', spotifyRoutes);
-  app.use('/analysis', analysisRoutes);
+  // API routes (with /api prefix - Vercel passes full path to serverless function)
+  app.use('/api/auth', authRoutes);
+  app.use('/api/spotify', spotifyRoutes);
+  app.use('/api/analysis', analysisRoutes);
 
   // Serve React app for all other routes (SPA fallback)
   app.get('*', (req: Request, res: Response) => {
     // Don't serve index.html for API routes
-    if (req.path.startsWith('/auth') || req.path.startsWith('/spotify') || req.path.startsWith('/analysis')) {
+    if (req.path.startsWith('/api/')) {
       return res.status(404).json({
         error: 'API endpoint not found',
         path: req.path,
