@@ -31,12 +31,15 @@ export class AuthController {
   static async callback(req: Request, res: Response) {
     const { code, error } = req.query;
 
+    // Get base URL from request for unified deployment
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
     if (error) {
-      return res.redirect(`${config.frontend.url}?error=${error}`);
+      return res.redirect(`${baseUrl}/?error=${error}`);
     }
 
     if (!code || typeof code !== 'string') {
-      return res.redirect(`${config.frontend.url}?error=no_code`);
+      return res.redirect(`${baseUrl}/?error=no_code`);
     }
 
     try {
@@ -53,11 +56,11 @@ export class AuthController {
       const user = await spotifyService.getCurrentUser();
       req.session.user = user;
 
-      // Redirect to frontend with success
-      res.redirect(`${config.frontend.url}/dashboard`);
+      // Redirect to dashboard (same domain in unified deployment)
+      res.redirect(`${baseUrl}/dashboard`);
     } catch (error) {
       console.error('Error in OAuth callback:', error);
-      res.redirect(`${config.frontend.url}?error=auth_failed`);
+      res.redirect(`${baseUrl}/?error=auth_failed`);
     }
   }
 
