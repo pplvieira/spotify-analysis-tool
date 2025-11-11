@@ -100,6 +100,7 @@ export function createApp(): Application {
 
   // Serve React app for all other routes (SPA fallback)
   app.get('*', (req: Request, res: Response) => {
+    console.log('[CATCH-ALL] Serving index.html for:', req.path);
     res.sendFile(path.join(publicPath, 'index.html'));
   });
 

@@ -29,6 +29,13 @@ export class AuthController {
    * Handle OAuth callback from Spotify
    */
   static async callback(req: Request, res: Response) {
+    console.log('[AUTH CALLBACK] Request received:', {
+      path: req.path,
+      originalUrl: req.originalUrl,
+      query: req.query,
+      method: req.method,
+    });
+
     const { code, error } = req.query;
 
     // Get base URL from request for unified deployment
