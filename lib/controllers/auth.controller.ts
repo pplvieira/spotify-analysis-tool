@@ -72,9 +72,23 @@ export class AuthController {
       req.session.user = user;
 
       console.log('[AUTH CALLBACK] Successfully authenticated user:', user.id);
+      console.log('[AUTH CALLBACK] Session ID:', req.sessionID);
+      console.log('[AUTH CALLBACK] Session saved:', {
+        hasToken: !!req.session.accessToken,
+        hasRefresh: !!req.session.refreshToken,
+        userId: req.session.user?.id,
+      });
 
-      // Redirect to dashboard (same domain in unified deployment)
-      res.redirect(`${baseUrl}/dashboard`);
+      // Save session explicitly before redirecting
+      req.session.save((err) => {
+        if (err) {
+          console.error('[AUTH CALLBACK] Session save error:', err);
+        } else {
+          console.log('[AUTH CALLBACK] Session saved successfully');
+        }
+        // Redirect to dashboard (same domain in unified deployment)
+        res.redirect(`${baseUrl}/dashboard`);
+      });
     } catch (error) {
       console.error('Error in OAuth callback:', error);
       res.redirect(`${baseUrl}/?error=auth_failed`);
@@ -97,10 +111,20 @@ export class AuthController {
    * Get current user session info
    */
   static getCurrentSession(req: Request, res: Response) {
+    console.log('[SESSION CHECK] Session ID:', req.sessionID);
+    console.log('[SESSION CHECK] Has access token:', !!req.session.accessToken);
+    console.log('[SESSION CHECK] Session data:', {
+      hasToken: !!req.session.accessToken,
+      hasUser: !!req.session.user,
+      userId: req.session.user?.id,
+    });
+
     if (!req.session.accessToken) {
+      console.log('[SESSION CHECK] No access token found - unauthenticated');
       return res.status(401).json({ authenticated: false });
     }
 
+    console.log('[SESSION CHECK] Session valid - authenticated');
     res.json({
       authenticated: true,
       user: req.session.user,
