@@ -84,13 +84,23 @@ export function createApp(): Application {
     });
   });
 
-  // API routes (Vercel strips /api prefix - function receives /auth/login not /api/auth/login)
+  // Log all requests to diagnose path handling
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(`[${req.method}] ${req.path} (original: ${req.originalUrl})`);
+    next();
+  });
+
+  // API routes - register at BOTH paths to handle Vercel routing uncertainty
   app.use('/auth', authRoutes);
+  app.use('/api/auth', authRoutes);
   app.use('/spotify', spotifyRoutes);
+  app.use('/api/spotify', spotifyRoutes);
   app.use('/analysis', analysisRoutes);
+  app.use('/api/analysis', analysisRoutes);
 
   // Serve React app for all other routes (SPA fallback)
   app.get('*', (req: Request, res: Response) => {
+    console.log('[CATCH-ALL] Serving index.html for:', req.path);
     res.sendFile(path.join(publicPath, 'index.html'));
   });
 

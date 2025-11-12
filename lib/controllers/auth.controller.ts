@@ -15,10 +15,17 @@ export class AuthController {
       'user-library-read',
     ].join(' ');
 
+    // Build dynamic redirect URI based on current host
+    // This allows OAuth to work in production, preview, and local environments
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const redirectUri = `${baseUrl}/api/auth/callback`;
+
+    console.log('[AUTH LOGIN] Initiating OAuth with redirect_uri:', redirectUri);
+
     const authUrl = new URL(`${SPOTIFY_ACCOUNTS_BASE_URL}/authorize`);
     authUrl.searchParams.append('client_id', config.spotify.clientId);
     authUrl.searchParams.append('response_type', 'code');
-    authUrl.searchParams.append('redirect_uri', config.spotify.redirectUri);
+    authUrl.searchParams.append('redirect_uri', redirectUri);
     authUrl.searchParams.append('scope', scopes);
     authUrl.searchParams.append('show_dialog', 'true');
 
@@ -29,10 +36,18 @@ export class AuthController {
    * Handle OAuth callback from Spotify
    */
   static async callback(req: Request, res: Response) {
+    console.log('[AUTH CALLBACK] Request received:', {
+      path: req.path,
+      originalUrl: req.originalUrl,
+      query: req.query,
+      method: req.method,
+    });
+
     const { code, error } = req.query;
 
     // Get base URL from request for unified deployment
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const redirectUri = `${baseUrl}/api/auth/callback`;
 
     if (error) {
       return res.redirect(`${baseUrl}/?error=${error}`);
@@ -43,8 +58,8 @@ export class AuthController {
     }
 
     try {
-      // Exchange code for tokens
-      const tokens = await SpotifyService.getTokens(code);
+      // Exchange code for tokens (must use same redirect_uri as login)
+      const tokens = await SpotifyService.getTokens(code, redirectUri);
 
       // Save tokens in session
       req.session.accessToken = tokens.access_token;
@@ -56,8 +71,24 @@ export class AuthController {
       const user = await spotifyService.getCurrentUser();
       req.session.user = user;
 
-      // Redirect to dashboard (same domain in unified deployment)
-      res.redirect(`${baseUrl}/dashboard`);
+      console.log('[AUTH CALLBACK] Successfully authenticated user:', user.id);
+      console.log('[AUTH CALLBACK] Session ID:', req.sessionID);
+      console.log('[AUTH CALLBACK] Session saved:', {
+        hasToken: !!req.session.accessToken,
+        hasRefresh: !!req.session.refreshToken,
+        userId: req.session.user?.id,
+      });
+
+      // Save session explicitly before redirecting
+      req.session.save((err) => {
+        if (err) {
+          console.error('[AUTH CALLBACK] Session save error:', err);
+        } else {
+          console.log('[AUTH CALLBACK] Session saved successfully');
+        }
+        // Redirect to dashboard (same domain in unified deployment)
+        res.redirect(`${baseUrl}/dashboard`);
+      });
     } catch (error) {
       console.error('Error in OAuth callback:', error);
       res.redirect(`${baseUrl}/?error=auth_failed`);
@@ -80,10 +111,20 @@ export class AuthController {
    * Get current user session info
    */
   static getCurrentSession(req: Request, res: Response) {
+    console.log('[SESSION CHECK] Session ID:', req.sessionID);
+    console.log('[SESSION CHECK] Has access token:', !!req.session.accessToken);
+    console.log('[SESSION CHECK] Session data:', {
+      hasToken: !!req.session.accessToken,
+      hasUser: !!req.session.user,
+      userId: req.session.user?.id,
+    });
+
     if (!req.session.accessToken) {
+      console.log('[SESSION CHECK] No access token found - unauthenticated');
       return res.status(401).json({ authenticated: false });
     }
 
+    console.log('[SESSION CHECK] Session valid - authenticated');
     res.json({
       authenticated: true,
       user: req.session.user,
@@ -109,5 +150,31 @@ export class AuthController {
       console.error('Error refreshing token:', error);
       res.status(500).json({ error: 'Failed to refresh token' });
     }
+  }
+
+  /**
+   * Debug endpoint to verify session configuration
+   */
+  static debugSession(req: Request, res: Response) {
+    const sessionInfo = {
+      sessionId: req.sessionID,
+      hasSession: !!req.session,
+      hasAccessToken: !!req.session?.accessToken,
+      hasRefreshToken: !!req.session?.refreshToken,
+      hasUser: !!req.session?.user,
+      userId: req.session?.user?.id,
+      cookieName: 'spotify.sid',
+      cookies: req.headers.cookie,
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        isVercel: !!process.env.VERCEL,
+        vercelEnv: process.env.VERCEL_ENV,
+        hasKvUrl: !!process.env.KV_REST_API_URL,
+        hasKvToken: !!process.env.KV_REST_API_TOKEN,
+      },
+    };
+
+    console.log('[SESSION DEBUG]', sessionInfo);
+    res.json(sessionInfo);
   }
 }
