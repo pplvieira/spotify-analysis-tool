@@ -151,4 +151,30 @@ export class AuthController {
       res.status(500).json({ error: 'Failed to refresh token' });
     }
   }
+
+  /**
+   * Debug endpoint to verify session configuration
+   */
+  static debugSession(req: Request, res: Response) {
+    const sessionInfo = {
+      sessionId: req.sessionID,
+      hasSession: !!req.session,
+      hasAccessToken: !!req.session?.accessToken,
+      hasRefreshToken: !!req.session?.refreshToken,
+      hasUser: !!req.session?.user,
+      userId: req.session?.user?.id,
+      cookieName: 'spotify.sid',
+      cookies: req.headers.cookie,
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        isVercel: !!process.env.VERCEL,
+        vercelEnv: process.env.VERCEL_ENV,
+        hasKvUrl: !!process.env.KV_REST_API_URL,
+        hasKvToken: !!process.env.KV_REST_API_TOKEN,
+      },
+    };
+
+    console.log('[SESSION DEBUG]', sessionInfo);
+    res.json(sessionInfo);
+  }
 }

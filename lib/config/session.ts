@@ -19,16 +19,27 @@ if (hasKVConfig && process.env.VERCEL) {
       ttl: 86400, // 24 hours in seconds
     });
 
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✓ Using Vercel KV for session storage');
+    console.log('  KV_REST_API_URL:', process.env.KV_REST_API_URL?.substring(0, 40) + '...');
+    console.log('  Session TTL: 24 hours');
+    console.log('  Session prefix: spotify-session:');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   } catch (error) {
+    console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.warn('⚠ Vercel KV initialization failed, using memory store');
     console.warn('  Error:', error);
     console.warn('  Sessions will not persist across serverless invocations');
+    console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
 } else if (process.env.VERCEL) {
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('ℹ Vercel KV not configured, using memory store for sessions');
+  console.log('  KV_REST_API_URL present:', !!process.env.KV_REST_API_URL);
+  console.log('  KV_REST_API_TOKEN present:', !!process.env.KV_REST_API_TOKEN);
   console.log('  Sessions will not persist across serverless invocations');
   console.log('  This is fine for preview deployments');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }
 
 export const sessionConfig: session.SessionOptions = {
@@ -40,10 +51,14 @@ export const sessionConfig: session.SessionOptions = {
     secure: config.nodeEnv === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
-    domain: config.nodeEnv === 'production' ? undefined : undefined,
+    // Use 'lax' for unified deployment on same domain
+    // 'lax' allows cookies to be sent on same-site requests and top-level navigation
+    sameSite: 'lax',
+    // Explicitly set path to root to ensure cookie is sent with all API requests
+    path: '/',
+    // Let the browser determine domain (same domain for unified deployment)
+    domain: undefined,
   },
-  // For production without KV, provide warning
   name: 'spotify.sid',
 };
 

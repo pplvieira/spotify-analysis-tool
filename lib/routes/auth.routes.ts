@@ -13,4 +13,7 @@ router.post('/logout', requireAuth, AuthController.logout);
 router.get('/session', AuthController.getCurrentSession);
 router.post('/refresh', AuthController.refreshToken);
 
+// Debug route
+router.get('/debug', AuthController.debugSession);
+
 export default router;
